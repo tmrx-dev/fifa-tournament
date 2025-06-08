@@ -7,10 +7,13 @@ This repository is configured for automatic deployment to Azure when code is pus
 To enable automatic application deployment, you need to configure the following secrets in your GitHub repository:
 
 ### Azure Authentication
-1. **AZURE_CREDENTIALS** - Service principal credentials for Azure authentication
+1. **AZURE_CLIENT_ID** - Service principal client ID
+2. **AZURE_TENANT_ID** - Azure tenant ID  
+3. **AZURE_CLIENT_SECRET** - Service principal client secret
+4. **AZURE_SUBSCRIPTION_ID** - Azure subscription ID
 
 ### Static Web App
-2. **AZURE_STATIC_WEB_APPS_API_TOKEN** - API token for Static Web Apps deployment
+5. **AZURE_STATIC_WEB_APPS_API_TOKEN** - API token for Static Web Apps deployment
 
 Note: Infrastructure deployment secrets (AZURE_SUBSCRIPTION_ID, AZURE_RESOURCE_GROUP, SQL_ADMIN_PASSWORD) are no longer needed since infrastructure is deployed manually.
 
@@ -18,10 +21,14 @@ Note: Infrastructure deployment secrets (AZURE_SUBSCRIPTION_ID, AZURE_RESOURCE_G
 
 1. Create a service principal:
 ```bash
-az ad sp create-for-rbac --name "fifa-tournament-deploy" --role contributor --scopes /subscriptions/{subscription-id}/resourceGroups/{resource-group} --sdk-auth
+az ad sp create-for-rbac --name "fifa-tournament-deploy" --role contributor --scopes /subscriptions/{subscription-id}/resourceGroups/{resource-group}
 ```
 
-2. Copy the JSON output and add it as the `AZURE_CREDENTIALS` secret in GitHub.
+2. Copy the output values and add them as individual GitHub secrets:
+   - `AZURE_CLIENT_ID` - The "appId" from the output
+   - `AZURE_TENANT_ID` - The "tenant" from the output  
+   - `AZURE_CLIENT_SECRET` - The "password" from the output
+   - `AZURE_SUBSCRIPTION_ID` - Your Azure subscription ID
 
 ## Deployment Workflow
 

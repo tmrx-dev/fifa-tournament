@@ -22,6 +22,14 @@ if ! command -v gh &> /dev/null; then
     exit 1
 fi
 
+# Check if jq is installed
+if ! command -v jq &> /dev/null; then
+    echo "❌ jq is not installed. Please install it first."
+    echo "   On macOS: brew install jq"
+    echo "   On Ubuntu: sudo apt-get install jq"
+    exit 1
+fi
+
 # Variables
 RESOURCE_GROUP="fifa-tournament-rg"
 LOCATION="East US"
@@ -44,21 +52,28 @@ az group create --name $RESOURCE_GROUP --location "$LOCATION"
 
 # Create service principal
 echo "🔑 Creating service principal..."
-SP_OUTPUT=$(az ad sp create-for-rbac --name $APP_NAME --role contributor --scopes /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP --sdk-auth)
+SP_OUTPUT=$(az ad sp create-for-rbac --name $APP_NAME --role contributor --scopes /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP)
+
+# Parse the JSON output
+CLIENT_ID=$(echo $SP_OUTPUT | jq -r '.appId')
+CLIENT_SECRET=$(echo $SP_OUTPUT | jq -r '.password')
+TENANT_ID=$(echo $SP_OUTPUT | jq -r '.tenant')
 
 echo "✅ Service principal created!"
 echo ""
 echo "📝 Please add the following secrets to your GitHub repository:"
 echo ""
-echo "Secret: AZURE_CREDENTIALS"
-echo "Value:"
-echo "$SP_OUTPUT"
+echo "Secret: AZURE_CLIENT_ID"
+echo "Value: $CLIENT_ID"
+echo ""
+echo "Secret: AZURE_TENANT_ID"  
+echo "Value: $TENANT_ID"
+echo ""
+echo "Secret: AZURE_CLIENT_SECRET"
+echo "Value: $CLIENT_SECRET"
 echo ""
 echo "Secret: AZURE_SUBSCRIPTION_ID"
 echo "Value: $SUBSCRIPTION_ID"
-echo ""
-echo "Secret: AZURE_RESOURCE_GROUP"
-echo "Value: $RESOURCE_GROUP"
 echo ""
 
 # Generate a secure password for SQL
