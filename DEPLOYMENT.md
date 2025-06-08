@@ -4,18 +4,15 @@ This repository is configured for automatic deployment to Azure when code is pus
 
 ## Required GitHub Secrets
 
-To enable automatic deployment, you need to configure the following secrets in your GitHub repository:
+To enable automatic application deployment, you need to configure the following secrets in your GitHub repository:
 
 ### Azure Authentication
 1. **AZURE_CREDENTIALS** - Service principal credentials for Azure authentication
-2. **AZURE_SUBSCRIPTION_ID** - Your Azure subscription ID
-3. **AZURE_RESOURCE_GROUP** - The Azure resource group name
-
-### Database
-4. **SQL_ADMIN_PASSWORD** - SQL Server administrator password
 
 ### Static Web App
-5. **AZURE_STATIC_WEB_APPS_API_TOKEN** - API token for Static Web Apps deployment
+2. **AZURE_STATIC_WEB_APPS_API_TOKEN** - API token for Static Web Apps deployment
+
+Note: Infrastructure deployment secrets (AZURE_SUBSCRIPTION_ID, AZURE_RESOURCE_GROUP, SQL_ADMIN_PASSWORD) are no longer needed since infrastructure is deployed manually.
 
 ## Setting up Azure Credentials
 
@@ -28,14 +25,38 @@ az ad sp create-for-rbac --name "fifa-tournament-deploy" --role contributor --sc
 
 ## Deployment Workflow
 
-The deployment consists of a single comprehensive workflow (`deploy.yml`) that:
+The deployment consists of a streamlined workflow (`deploy.yml`) that:
 
-1. **Tests** - Runs frontend linting/tests and backend builds/tests
-2. **Infrastructure Deployment** - Deploys Azure resources using Bicep templates
-3. **Backend API Deployment** - Builds and deploys the .NET API to Azure App Service
-4. **Frontend Deployment** - Builds and deploys the React app to Azure Static Web Apps
+1. **Backend API Deployment** - Builds and deploys the .NET API to Azure App Service
+2. **Frontend Deployment** - Builds and deploys the React app to Azure Static Web Apps
 
-All steps run automatically when code is pushed to the `main` branch.
+Both jobs run in parallel automatically when code is pushed to the `main` branch.
+3. **Frontend Deployment** - Builds and deploys the React app to Azure Static Web Apps
+
+Infrastructure deployments are handled manually from your local machine using the Azure CLI and Bicep templates.
+
+All application deployments run automatically when code is pushed to the `main` branch.
+
+## Infrastructure Deployment
+
+Infrastructure is deployed manually from your local machine for better control over Azure resources.
+
+### Prerequisites
+- Azure CLI installed and logged in
+- Proper Azure permissions for the target subscription and resource group
+
+### Deploy Infrastructure
+```bash
+# Navigate to infrastructure directory
+cd infrastructure
+
+# Deploy using Azure CLI
+az deployment group create \
+  --resource-group $AZURE_RESOURCE_GROUP \
+  --template-file main.bicep \
+  --parameters @parameters/prod.parameters.json \
+  --parameters sqlAdminPassword="YourSecurePassword"
+```
 
 ## Manual Deployment
 
