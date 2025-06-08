@@ -1,0 +1,33 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=fifa-dev-sql.database.windows.net;Database=fifa-dev-db;User ID=sqladmin;Password=YOUR_DB_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  },
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "TenantId": "YOUR_AZURE_TENANT_ID",
+    "ClientId": "YOUR_AZURE_CLIENT_ID",
+    "ClientSecret": "YOUR_AZURE_CLIENT_SECRET",
+    "CallbackPath": "/auth/callback"
+  },
+  "Google": {
+    "ClientId": "YOUR_GOOGLE_CLIENT_ID",
+    "ClientSecret": "YOUR_GOOGLE_CLIENT_SECRET"
+  },
+  "Jwt": {
+    "Key": "your-super-secret-jwt-key-here-min-256-bits-for-development-only",
+    "Issuer": "FifaTournament",
+    "Audience": "FifaTournament"
+  },
+  "ApplicationInsights": {
+    "InstrumentationKey": "YOUR_APP_INSIGHTS_KEY"
+  },
+  "Frontend": {
+    "BaseUrl": "http://localhost:5173"
+  }
+}

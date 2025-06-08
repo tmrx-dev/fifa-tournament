@@ -1,0 +1,30 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*"]
+  },
+  "routes": [
+    {
+      "route": "/auth/callback",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": ["anonymous"]
+    }
+  ],
+  "responseOverrides": {
+    "400": {
+      "rewrite": "/index.html"
+    },
+    "401": {
+      "rewrite": "/index.html"
+    },
+    "403": {
+      "rewrite": "/index.html"
+    },
+    "404": {
+      "rewrite": "/index.html"
+    }
+  }
+}
