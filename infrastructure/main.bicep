@@ -1,13 +1,12 @@
 @description('Main deployment template for FIFA Tournament App')
 
-param environmentName string = 'dev'
 param location string = resourceGroup().location
 param sqlAdminUsername string = 'sqladmin'
 @secure()
 param sqlAdminPassword string
 
-// Naming convention
-var resourcePrefix = 'fifa-${environmentName}'
+// Naming convention - single production environment
+var resourcePrefix = 'fifa-prod'
 
 // Deploy SQL Server and Database
 module sqlServer 'modules/sql-server.bicep' = {
@@ -28,7 +27,7 @@ module appService 'modules/app-service.bicep' = {
     appServicePlanName: '${resourcePrefix}-plan'
     appServiceName: '${resourcePrefix}-api'
     location: location
-    sku: environmentName == 'prod' ? 'B1' : 'F1'
+    sku: 'B1'
   }
 }
 
@@ -39,7 +38,7 @@ module staticWebApp 'modules/static-web-app.bicep' = {
     staticWebAppName: '${resourcePrefix}-web'
     location: location
     repositoryUrl: 'https://github.com/tmrx-dev/fifa-tournament'
-    branch: environmentName == 'prod' ? 'main' : 'develop'
+    branch: 'main'
   }
 }
 

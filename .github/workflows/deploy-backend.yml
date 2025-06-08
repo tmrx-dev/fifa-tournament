@@ -1,0 +1,84 @@
+name: Deploy Backend API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: fifa-prod-api
+  AZURE_WEBAPP_PACKAGE_PATH: ./backend/FifaTournament.Api
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  test:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: |
+        cd backend/FifaTournament.Api
+        dotnet restore
+        
+    - name: Build project
+      run: |
+        cd backend/FifaTournament.Api
+        dotnet build --no-restore --configuration Release
+        
+    - name: Run tests
+      run: |
+        cd backend
+        dotnet test --no-build --configuration Release --verbosity normal
+
+  deploy:
+    name: Deploy to Azure App Service
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: |
+        cd backend/FifaTournament.Api
+        dotnet restore
+        
+    - name: Build application
+      run: |
+        cd backend/FifaTournament.Api
+        dotnet build --no-restore --configuration Release
+        
+    - name: Publish application
+      run: |
+        cd backend/FifaTournament.Api
+        dotnet publish --no-build --configuration Release --output ./publish
+        
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/publish
