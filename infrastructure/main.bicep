@@ -27,7 +27,7 @@ module appService 'modules/app-service.bicep' = {
     appServicePlanName: '${resourcePrefix}-plan'
     appServiceName: '${resourcePrefix}-api'
     location: location
-    sku: 'B1'
+    sku: 'F1'
   }
 }
 

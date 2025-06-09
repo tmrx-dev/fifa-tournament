@@ -32,7 +32,7 @@ fi
 
 # Variables
 RESOURCE_GROUP="fifa-tournament-rg"
-LOCATION="East US"
+LOCATION="West Europe"
 SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 APP_NAME="fifa-tournament-deploy"
 
