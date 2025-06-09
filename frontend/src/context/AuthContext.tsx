@@ -2,13 +2,11 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import { authService } from '../services/authApi'
 import { microsoftAuthService } from '../services/microsoftAuth'
 import { teamApi } from '../services/api'
-import type { User, CreateUserDto } from '../types'
+import type { User } from '../types'
 
 interface AuthContextType {
   user: User | null
   setUser: (user: User | null) => void
-  login: (email: string, password: string) => Promise<void>
-  register: (userData: CreateUserDto) => Promise<void>
   signInWithMicrosoft: () => void
   logout: () => void
   isLoading: boolean
@@ -60,34 +58,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkAuth()
   }, [])
 
-  const login = async (email: string, password: string) => {
-    setIsLoading(true)
-    try {
-      const response = await authService.login(email, password)
-      setUser(response.user)
-      localStorage.setItem('auth_token', response.token)
-    } catch (error) {
-      console.error('Login failed:', error)
-      throw error
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const register = async (userData: CreateUserDto) => {
-    setIsLoading(true)
-    try {
-      const response = await authService.register(userData)
-      setUser(response.user)
-      localStorage.setItem('auth_token', response.token)
-    } catch (error) {
-      console.error('Register failed:', error)
-      throw error
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const signInWithMicrosoft = () => {
     microsoftAuthService.signInWithMicrosoft()
   }
@@ -115,8 +85,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value = {
     user,
     setUser,
-    login,
-    register,
     signInWithMicrosoft,
     logout,
     isLoading,
