@@ -77,12 +77,28 @@ var secretKey = jwtSettings["Key"] ?? "your-super-secret-jwt-key-here-min-256-bi
 var issuer = jwtSettings["Issuer"] ?? "FifaTournament";
 var audience = jwtSettings["Audience"] ?? "FifaTournament";
 
-builder.Services.AddAuthentication(options =>
+// Configure OAuth providers for external authentication
+var googleClientId = builder.Configuration["Google:ClientId"];
+var googleClientSecret = builder.Configuration["Google:ClientSecret"];
+var microsoftClientId = builder.Configuration["Microsoft:ClientId"];
+var microsoftClientSecret = builder.Configuration["Microsoft:ClientSecret"];
+
+// Configure authentication with all schemes in a single chain
+var authBuilder = builder.Services.AddAuthentication(options =>
 {
     // Set JWT Bearer as the default authentication scheme
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddCookie("Cookies", options =>
+{
+    // Configure cookie authentication for OAuth callbacks
+    options.LoginPath = "/api/auth/login";
+    options.LogoutPath = "/api/auth/logout";
+    options.AccessDeniedPath = "/api/auth/access-denied";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    options.SlidingExpiration = true;
 })
 .AddJwtBearer(options =>
 {
@@ -99,61 +115,55 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Configure OAuth providers for external authentication
-var googleClientId = builder.Configuration["Google:ClientId"];
-var googleClientSecret = builder.Configuration["Google:ClientSecret"];
-var microsoftClientId = builder.Configuration["Microsoft:ClientId"];
-var microsoftClientSecret = builder.Configuration["Microsoft:ClientSecret"];
-
 // Add Google OAuth if configured
 if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
 {
-    builder.Services.AddAuthentication()
-        .AddGoogle("Google", options =>
-        {
-            options.ClientId = googleClientId;
-            options.ClientSecret = googleClientSecret;
-            options.CallbackPath = "/api/auth/callback/google";
-            options.SaveTokens = true;
-            
-            // Request necessary scopes
-            options.Scope.Clear();
-            options.Scope.Add("openid");
-            options.Scope.Add("profile");
-            options.Scope.Add("email");
-            
-            // Standard claims are automatically mapped by the OAuth handler
-            
-            // Configure correlation cookie settings for better reliability
-            options.CorrelationCookie.HttpOnly = true;
-            options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-            options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        });
+    authBuilder.AddGoogle("Google", options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.CallbackPath = "/api/auth/callback/google";
+        options.SaveTokens = true;
+        options.SignInScheme = "Cookies"; // Use cookie scheme for OAuth sign-in
+        
+        // Request necessary scopes
+        options.Scope.Clear();
+        options.Scope.Add("openid");
+        options.Scope.Add("profile");
+        options.Scope.Add("email");
+        
+        // Standard claims are automatically mapped by the OAuth handler
+        
+        // Configure correlation cookie settings for better reliability
+        options.CorrelationCookie.HttpOnly = true;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+    });
 }
 
 // Add Microsoft OAuth if configured
 if (!string.IsNullOrEmpty(microsoftClientId) && !string.IsNullOrEmpty(microsoftClientSecret))
 {
-    builder.Services.AddAuthentication()
-        .AddMicrosoftAccount("Microsoft", options =>
-        {
-            options.ClientId = microsoftClientId;
-            options.ClientSecret = microsoftClientSecret;
-            options.CallbackPath = "/api/auth/callback/microsoft";
-            options.SaveTokens = true;
-            
-            // Request necessary scopes
-            options.Scope.Clear();
-            options.Scope.Add("openid");
-            options.Scope.Add("profile");
-            options.Scope.Add("email");
-            options.Scope.Add("User.Read");
-            
-            // Configure correlation cookie settings
-            options.CorrelationCookie.HttpOnly = true;
-            options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-            options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        });
+    authBuilder.AddMicrosoftAccount("Microsoft", options =>
+    {
+        options.ClientId = microsoftClientId;
+        options.ClientSecret = microsoftClientSecret;
+        options.CallbackPath = "/api/auth/callback/microsoft";
+        options.SaveTokens = true;
+        options.SignInScheme = "Cookies"; // Use cookie scheme for OAuth sign-in
+        
+        // Request necessary scopes
+        options.Scope.Clear();
+        options.Scope.Add("openid");
+        options.Scope.Add("profile");
+        options.Scope.Add("email");
+        options.Scope.Add("User.Read");
+        
+        // Configure correlation cookie settings
+        options.CorrelationCookie.HttpOnly = true;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+    });
 }
 
 // Configure authorization
