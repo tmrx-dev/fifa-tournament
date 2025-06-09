@@ -22,10 +22,26 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         var frontendUrl = builder.Configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
-        policy.WithOrigins(frontendUrl)
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        
+        if (builder.Environment.IsProduction())
+        {
+            // In production, allow both the configured frontend URL and any Azure Static Web Apps domain
+            policy.WithOrigins(frontendUrl)
+                  .SetIsOriginAllowed(origin => 
+                      origin.StartsWith("https://") && 
+                      (origin.Contains("azurestaticapps.net") || origin == frontendUrl))
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+        else
+        {
+            // In development, allow localhost
+            policy.WithOrigins(frontendUrl, "http://localhost:3000", "http://localhost:5173")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
     });
 });
 
